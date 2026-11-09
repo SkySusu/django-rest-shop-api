@@ -1,7 +1,13 @@
+from decimal import Decimal
+
 from rest_framework import serializers
+
 from catalog.models import Product
 from catalog.serializers import ProductSerializer
+
 from .models import Cart, CartItem
+
+MAX_CART_QUANTITY = 2_147_483_647
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -16,7 +22,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ("id", "product", "product_id", "quantity", "subtotal")
         read_only_fields = ("id", "subtotal")
 
-    def get_subtotal(self, item):
+    def get_subtotal(self, item) -> Decimal:
         return item.product.price * item.quantity
 
 
@@ -28,10 +34,19 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ("id", "items", "total", "updated_at")
 
-    def get_total(self, cart):
-        return sum((item.product.price * item.quantity for item in cart.items.select_related("product")), 0)
+    def get_total(self, cart) -> Decimal:
+        return sum(
+            (item.product.price * item.quantity for item in cart.items.all()),
+            Decimal("0.00"),
+        )
 
 
 class AddCartItemSerializer(serializers.Serializer):
     product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
-    quantity = serializers.IntegerField(min_value=1, default=1)
+    quantity = serializers.IntegerField(
+        min_value=1, max_value=MAX_CART_QUANTITY, default=1
+    )
+
+
+class UpdateCartItemSerializer(serializers.Serializer):
+    quantity = serializers.IntegerField(min_value=1, max_value=MAX_CART_QUANTITY)

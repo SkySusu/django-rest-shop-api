@@ -1,9 +1,18 @@
+from decimal import Decimal
+
 from django.db import transaction
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from .models import User
-from .serializers import BalanceTopUpSerializer, ProfileSerializer, RegistrationSerializer
+from .serializers import (
+    BalanceTopUpSerializer,
+    ProfileSerializer,
+    RegistrationSerializer,
+)
 
 
 class RegistrationView(generics.CreateAPIView):
@@ -20,13 +29,17 @@ class ProfileView(generics.RetrieveAPIView):
 
 
 class BalanceTopUpView(APIView):
-    """Simulate a user initiated top-up. This endpoint does not process real payments."""
+    """Simulate a user initiated top-up without processing real payments."""
 
+    @extend_schema(request=BalanceTopUpSerializer, responses=ProfileSerializer)
     def post(self, request):
         serializer = BalanceTopUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
             user = User.objects.select_for_update().get(pk=request.user.pk)
-            user.balance += serializer.validated_data["amount"]
+            new_balance = user.balance + serializer.validated_data["amount"]
+            if new_balance > Decimal("9999999999.99"):
+                raise ValidationError({"amount": "Превышен максимальный баланс."})
+            user.balance = new_balance
             user.save(update_fields=["balance"])
         return Response(ProfileSerializer(user).data, status=status.HTTP_200_OK)

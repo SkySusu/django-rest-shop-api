@@ -15,10 +15,13 @@ services:
 
   web:
     build: .
-    env_file:
-      - .env
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-shop}:${POSTGRES_PASSWORD:-shop}@db:5432/${POSTGRES_DB:-shop}
+      SECRET_KEY: ${SECRET_KEY:-}
+      DEBUG: ${DEBUG:-0}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-7}
     ports:
       - "8000:8000"
     depends_on:

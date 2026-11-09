@@ -2,6 +2,7 @@
 .venv
 venv
 .env
+.runtime_secret_key
 __pycache__
 *.py[cod]
 *.sqlite3

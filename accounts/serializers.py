@@ -3,11 +3,14 @@ from decimal import Decimal
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
+
 from .models import User
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
+    password = serializers.CharField(
+        write_only=True, min_length=8, trim_whitespace=False
+    )
 
     class Meta:
         model = User
@@ -33,4 +36,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class BalanceTopUpSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01"))
+    amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=Decimal("0.01")
+    )

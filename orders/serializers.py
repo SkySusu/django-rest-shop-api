@@ -1,9 +1,10 @@
 from rest_framework import serializers
+
 from .models import Order, OrderItem
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    subtotal = serializers.ReadOnlyField()
+    subtotal = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = OrderItem
